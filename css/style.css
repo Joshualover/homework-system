@@ -229,6 +229,20 @@ header p {
     background: #c0392b;
 }
 
+ .btn-clear {
+    background: #95a5a6;
+    color: white;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+}
+
+.btn-clear:hover {
+    background: #7f8c8d;
+}
+
 /* 响应式 */
 @media (max-width: 600px) {
     header h1 {
