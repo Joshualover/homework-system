@@ -142,6 +142,7 @@ class HomeworkSystem {
                 <span>📊 总计: ${total}</span>
                 <span>⏳ 待完成: ${pending}</span>
                 <span>✅ 已完成: ${completed}</span>
+                ${total > 0 ? `<button onclick=\"homeworkSystem.clearAllTasks()\" class=\"btn-clear\">🗑️ 清空全部</button>` : ''}
             </div>
         `;
         
@@ -199,7 +200,23 @@ class HomeworkSystem {
         const saved = localStorage.getItem('homeworkTasks');
         return saved ? JSON.parse(saved) : [];
     }
+    clearAllTasks() {
+        if (this.tasks.length === 0) return;
+        if (confirm('确定要清空所有任务吗？')) {
+            this.tasks = [];
+            this.saveTasks();
+            this.renderTasks();
+            this.showMessage('所有任务已清空', 'success');
+        }
+    }
 }
+
+window.setExample = (text) => {
+    const input = document.getElementById('taskInput');
+    if (input) {
+        input.value = text;
+    }
+};
 
 // 添加动画样式
 const style = document.createElement('style');
