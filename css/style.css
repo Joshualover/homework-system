@@ -4,6 +4,36 @@
     box-sizing: border-box;
 }
 
+.examples {
+    margin: 15px 0;
+    padding: 12px;
+    background: #f0f4ff;
+    border-radius: 8px;
+}
+
+.examples p {
+    margin-bottom: 8px;
+    color: #667eea;
+    font-size: 0.9rem;
+}
+
+.example-btn {
+    margin: 3px;
+    padding: 6px 12px;
+    background: white;
+    border: 1px solid #667eea;
+    border-radius: 15px;
+    color: #667eea;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.example-btn:hover {
+    background: #667eea;
+    color: white;
+}
+
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
