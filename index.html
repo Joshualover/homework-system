@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小学生作业系统</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📝 小学生作业系统</h1>
+            <p>输入作业任务，自动生成清单</p>
+        </header>
+        
+        <main>
+            <section class="input-section">
+                <textarea id="taskInput" placeholder="例如：数学作业第10页练习题，明天交..."></textarea>
+                <button id="addTaskBtn">生成任务清单</button>
+            </section>
+            
+            <section class="tasks-section">
+                <h2>📋 任务清单</h2>
+                <div id="taskList"></div>
+            </section>
+        </main>
+    </div>
+    
+    <script src="js/app.js"></script>
+</body>
+</html>
