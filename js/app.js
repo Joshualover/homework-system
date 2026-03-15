@@ -1,4 +1,4 @@
-import { parseMultipleTasks } from './parser.js';
+
 
 /**
  * 小学生作业系统 - 主应用

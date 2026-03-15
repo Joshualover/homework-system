@@ -145,3 +145,7 @@ export function parseMultipleTasks(text) {
 }
 
 export default { parseTask, parseMultipleTasks };
+
+if (typeof window !== 'undefined') {
+    window.parseMultipleTasks = parseMultipleTasks;
+}
