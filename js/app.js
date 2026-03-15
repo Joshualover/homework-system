@@ -7,6 +7,9 @@
 class HomeworkSystem {
     constructor() {
         this.tasks = this.loadTasks();
+        this.history = this.loadHistory();
+        this.currentView = 'current';
+        this.filterDate = null;
         this.init();
     }
     
@@ -55,7 +58,20 @@ class HomeworkSystem {
     toggleTask(id) {
         const task = this.tasks.find(t => t.id === id);
         if (task) {
+            const wasCompleted = task.completed;
             task.completed = !task.completed;
+            
+            if (task.completed && !wasCompleted) {
+                task.completedAt = new Date().toISOString();
+                this.history.unshift(task);
+                this.tasks = this.tasks.filter(t => t.id !== id);
+                this.saveHistory();
+                this.showMessage('任务已完成！', 'success');
+            } else if (!task.completed && wasCompleted) {
+                this.history = this.history.filter(t => t.id !== id);
+                this.saveHistory();
+            }
+            
             this.saveTasks();
             this.renderTasks();
         }
@@ -63,7 +79,9 @@ class HomeworkSystem {
     
     deleteTask(id) {
         this.tasks = this.tasks.filter(t => t.id !== id);
+        this.history = this.history.filter(t => t.id !== id);
         this.saveTasks();
+        this.saveHistory();
         this.renderTasks();
     }
     
@@ -95,34 +113,50 @@ class HomeworkSystem {
         return colors[subject] || '#95a5a6';
     }
     
+    getFilteredHistory() {
+        if (!this.filterDate) return this.history;
+        
+        const filterDateStr = this.filterDate;
+        return this.history.filter(task => {
+            if (!task.completedAt) return false;
+            return task.completedAt.startsWith(filterDateStr);
+        });
+    }
+    
     renderTasks() {
         const container = document.getElementById('taskList');
         
+        if (this.currentView === 'history') {
+            this.renderHistoryView(container);
+            return;
+        }
+        
         if (this.tasks.length === 0) {
             container.innerHTML = `
-                <div class=\"empty-state\">
+                <div class="empty-state">
                     <p>🎯 还没有作业任务</p>
-                    <p>在上方输入作业内容，点击\"生成任务清单\"</p>
+                    <p>在上方输入作业内容，点击"生成任务清单"</p>
                 </div>
             `;
+            this.renderStats();
             return;
         }
         
         container.innerHTML = this.tasks.map(task => `
-            <div class=\"task-card ${task.completed ? 'completed' : ''}\" 
-                 style=\"border-left-color: ${this.getSubjectColor(task.subject)}\">
-                <div class=\"task-header\">
-                    <span class=\"subject-badge\" style=\"background: ${this.getSubjectColor(task.subject)}\">
+            <div class="task-card ${task.completed ? 'completed' : ''}" 
+                 style="border-left-color: ${this.getSubjectColor(task.subject)}">
+                <div class="task-header">
+                    <span class="subject-badge" style="background: ${this.getSubjectColor(task.subject)}">
                         ${this.getSubjectIcon(task.subject)} ${task.subject}
                     </span>
-                    ${task.deadline ? `<span class=\"deadline\">⏰ ${task.deadline}</span>` : ''}
+                    ${task.deadline ? `<span class="deadline">⏰ ${task.deadline}</span>` : ''}
                 </div>
-                <p class=\"task-description\">${this.escapeHtml(task.description)}</p>
-                <div class=\"task-actions\">
-                    <button class=\"btn-toggle\" onclick=\"homeworkSystem.toggleTask('${task.id}')\">
+                <p class="task-description">${this.escapeHtml(task.description)}</p>
+                <div class="task-actions">
+                    <button class="btn-toggle" onclick="homeworkSystem.toggleTask('${task.id}')">
                         ${task.completed ? '↩️ 撤销完成' : '✅ 标记完成'}
                     </button>
-                    <button class=\"btn-delete\" onclick=\"homeworkSystem.deleteTask('${task.id}')\">
+                    <button class="btn-delete" onclick="homeworkSystem.deleteTask('${task.id}')">
                         🗑️ 删除
                     </button>
                 </div>
@@ -138,21 +172,111 @@ class HomeworkSystem {
         const pending = total - completed;
         
         const statsHtml = `
-            <div class=\"stats-bar\">
+            <div class="stats-bar">
                 <span>📊 总计: ${total}</span>
                 <span>⏳ 待完成: ${pending}</span>
                 <span>✅ 已完成: ${completed}</span>
-                ${total > 0 ? `<button onclick=\"homeworkSystem.clearAllTasks()\" class=\"btn-clear\">🗑️ 清空全部</button>` : ''}
+                <button onclick="homeworkSystem.switchView('history')" class="btn-history">📋 历史记录</button>
+                ${total > 0 ? `<button onclick="homeworkSystem.clearAllTasks()" class="btn-clear">🗑️ 清空全部</button>` : ''}
             </div>
         `;
         
-        let statsEl = document.querySelector(\'.stats-bar\');
+        let statsEl = document.querySelector('.stats-bar');
         if (statsEl) {
             statsEl.outerHTML = statsHtml;
         } else {
-            const tasksSection = document.querySelector(\'.tasks-section\');
+            const tasksSection = document.querySelector('.tasks-section');
             tasksSection.insertAdjacentHTML('afterbegin', statsHtml);
         }
+    }
+    
+    renderHistoryStats(count) {
+        const statsHtml = `
+            <div class="stats-bar">
+                <span>📋 历史记录: ${count} 条</span>
+                <span>📊 全部: ${this.history.length} 条</span>
+                <button onclick="homeworkSystem.switchView('current')" class="btn-history">← 返回当前任务</button>
+            </div>
+        `;
+        
+        let statsEl = document.querySelector('.stats-bar');
+        if (statsEl) {
+            statsEl.outerHTML = statsHtml;
+        } else {
+            const tasksSection = document.querySelector('.tasks-section');
+            tasksSection.insertAdjacentHTML('afterbegin', statsHtml);
+        }
+    }
+    
+    renderHistoryView(container) {
+        const filtered = this.getFilteredHistory();
+        
+        const filterHtml = `
+            <div class="history-filter">
+                <label>📅 筛选日期：</label>
+                <input type="date" id="historyDateFilter" value="${this.filterDate || ''}" 
+                       onchange="homeworkSystem.setDateFilter(this.value)">
+                ${this.filterDate ? `<button onclick="homeworkSystem.clearDateFilter()" class="btn-clear">清除筛选</button>` : ''}
+            </div>
+        `;
+        
+        if (filtered.length === 0) {
+            container.innerHTML = filterHtml + `
+                <div class="empty-state">
+                    <p>📋 暂无历史记录</p>
+                    <p>点击"查看历史记录"按钮查看已完成的任务</p>
+                </div>
+            `;
+            this.renderHistoryStats(0);
+            return;
+        }
+        
+        container.innerHTML = filterHtml + filtered.map(task => `
+            <div class="task-card completed" 
+                 style="border-left-color: ${this.getSubjectColor(task.subject)}">
+                <div class="task-header">
+                    <span class="subject-badge" style="background: ${this.getSubjectColor(task.subject)}">
+                        ${this.getSubjectIcon(task.subject)} ${task.subject}
+                    </span>
+                    ${task.deadline ? `<span class="deadline">⏰ ${task.deadline}</span>` : ''}
+                    <span class="completed-time">✅ ${this.formatCompletedTime(task.completedAt)}</span>
+                </div>
+                <p class="task-description">${this.escapeHtml(task.description)}</p>
+                <div class="task-actions">
+                    <button class="btn-delete" onclick="homeworkSystem.deleteTask('${task.id}')">
+                        🗑️ 删除
+                    </button>
+                </div>
+            </div>
+        `).join('');
+        
+        this.renderHistoryStats(filtered.length);
+    }
+    
+    formatCompletedTime(isoString) {
+        if (!isoString) return '';
+        const date = new Date(isoString);
+        return date.toLocaleString('zh-CN', { 
+            month: 'numeric', 
+            day: 'numeric', 
+            hour: '2-digit', 
+            minute: '2-digit' 
+        });
+    }
+    
+    setDateFilter(dateStr) {
+        this.filterDate = dateStr;
+        this.renderTasks();
+    }
+    
+    clearDateFilter() {
+        this.filterDate = null;
+        this.renderTasks();
+    }
+    
+    switchView(view) {
+        this.currentView = view;
+        this.renderTasks();
     }
     
     escapeHtml(text) {
@@ -200,6 +324,16 @@ class HomeworkSystem {
         const saved = localStorage.getItem('homeworkTasks');
         return saved ? JSON.parse(saved) : [];
     }
+    
+    saveHistory() {
+        localStorage.setItem('homeworkHistory', JSON.stringify(this.history));
+    }
+    
+    loadHistory() {
+        const saved = localStorage.getItem('homeworkHistory');
+        return saved ? JSON.parse(saved) : [];
+    }
+    
     clearAllTasks() {
         if (this.tasks.length === 0) return;
         if (confirm('确定要清空所有任务吗？')) {

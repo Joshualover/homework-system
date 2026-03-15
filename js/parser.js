@@ -57,7 +57,6 @@ function detectDeadline(text) {
         }
     }
     
-    // 尝试匹配 "X月X日" 格式
     const dateMatch = text.match(/(\d{1,2})月(\d{1,2})[日号]/);
     if (dateMatch) {
         const month = parseInt(dateMatch[1]) - 1;
@@ -91,7 +90,6 @@ function formatDate(date) {
  * @returns {string}
  */
 function extractDescription(text) {
-    // 移除时间相关词汇，保留核心任务描述
     let desc = text;
     for (const keyword of Object.keys(TIME_KEYWORDS)) {
         desc = desc.replace(new RegExp(keyword, 'g'), '');
@@ -106,7 +104,7 @@ function extractDescription(text) {
  * @param {string} text - 任务文本
  * @returns {Object} - 结构化任务对象
  */
-export function parseTask(text) {
+function parseTask(text) {
     if (!text || typeof text !== 'string') {
         return null;
     }
@@ -132,10 +130,9 @@ export function parseTask(text) {
  * @param {string} text - 包含多个任务的文本
  * @returns {Array} - 任务对象数组
  */
-export function parseMultipleTasks(text) {
+function parseMultipleTasks(text) {
     if (!text) return [];
     
-    // 按常见分隔符分割
     const separators = /[。；;\n]+/;
     const parts = text.split(separators).filter(p => p.trim());
     
@@ -143,8 +140,6 @@ export function parseMultipleTasks(text) {
         .map(part => parseTask(part))
         .filter(task => task !== null);
 }
-
-export default { parseTask, parseMultipleTasks };
 
 if (typeof window !== 'undefined') {
     window.parseMultipleTasks = parseMultipleTasks;

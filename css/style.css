@@ -243,6 +243,48 @@ header p {
     background: #7f8c8d;
 }
 
+.btn-history {
+    background: #3498db;
+    color: white;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+}
+
+.btn-history:hover {
+    background: #2980b9;
+}
+
+.history-filter {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    padding: 15px;
+    background: #f0f4ff;
+    border-radius: 8px;
+}
+
+.history-filter label {
+    color: #667eea;
+    font-weight: 500;
+}
+
+.history-filter input[type="date"] {
+    padding: 8px 12px;
+    border: 2px solid #667eea;
+    border-radius: 6px;
+    font-size: 0.9rem;
+}
+
+.completed-time {
+    color: #27ae60;
+    font-size: 0.85rem;
+}
+
 /* 响应式 */
 @media (max-width: 600px) {
     header h1 {
